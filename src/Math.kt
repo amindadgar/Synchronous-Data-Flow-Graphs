@@ -1,4 +1,3 @@
-import java.math.BigInteger
 
 class Math {
     fun factorial(n: Int):Int{

@@ -14,8 +14,8 @@ class Actor(
     var inputRate: Int?
     , var outputRate: Int? = null
     , var latency: Int? = null
-    , var outConnections: ArrayList<Char> = arrayListOf()
-    , var inputConnections: ArrayList<Char> = arrayListOf()
-    , var inputTokens: Int? = null
-    , var outputTokens: Int? = null
+    , var outConnections: ArrayList<Int> = arrayListOf()
+    , var inputConnections: ArrayList<Int> = arrayListOf()
+    , var inputTokens: ArrayList<Int> = arrayListOf()
+    , var outputTokens:  ArrayList<Int> = arrayListOf()
 )

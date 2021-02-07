@@ -44,16 +44,14 @@ class ReadFromFile {
                 else -> {
                     // we would read the actors minus one
                     // because the first actor number is zero !
-                    val firstActor = (s[0] - 1)
-                    val secondActor = (s[2] - 1)
-                    val firstActorInt: Int = Character.getNumericValue(s[0]) - 1
-                    val secondActorInt: Int = Character.getNumericValue(s[2]) - 1
+                    val firstActor: Int = Character.getNumericValue(s[0]) - 1
+                    val secondActor: Int = Character.getNumericValue(s[2]) - 1
 
 
-                    actors[firstActorInt].outConnections.add(secondActor)
-                    actors[firstActorInt].outputTokens = removeString(s)
-                    actors[secondActorInt].inputConnections.add(firstActor)
-                    actors[secondActorInt].inputTokens = removeString(s)
+                    actors[firstActor].outConnections.add(secondActor)
+                    actors[firstActor].outputTokens.add(removeString(s))
+                    actors[secondActor].inputConnections.add(firstActor)
+                    actors[secondActor].inputTokens.add(removeString(s))
 
                 }
             }
