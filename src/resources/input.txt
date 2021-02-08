@@ -7,7 +7,7 @@ Actor2_OutputRate: 1
 Actor3_OutputRate: 1
 Actor1_latency: 1
 Actor2_latency: 2
-Actor3_latency: 1
+Actor3_latency: 3
 1,2 token_count:0
 1,3 token_count:0
 2,3 token_count:0

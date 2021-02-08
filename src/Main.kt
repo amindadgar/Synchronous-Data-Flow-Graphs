@@ -28,17 +28,18 @@ fun compute(actors: ArrayList<Actor>) {
 
         if (checkInput(actors[index])) {
             // fire the actor
+            println("Actor number $index is Fired!")
 
             latency += actors[index].latency!!
-            println(actors[index].latency!!)
+//            println(actors[index].latency!!)
 
             consumeTokens(actors[index])
             startArray.addAll(actors[index].outConnections)
 
             for (i in actors[index].outConnections){
                 // put the input tokens on the actors
-                // TODO: Check this to fix the input problem
-                actors[i].inputTokens.add(index, actors[index].outputRate!! )
+                println("${actors[index].outputRate!!} Tokens produces for actor $i")
+                actors[i].inputTokens[index] = actors[index].outputRate!!
             }
 
             // If we reach the end actor
@@ -53,7 +54,7 @@ fun compute(actors: ArrayList<Actor>) {
 
 
         } else {
-            println("The Graph is unstable!")
+            println("Actor number $index be cannot Fired!")
         }
     }
     println("Latency: $latency")

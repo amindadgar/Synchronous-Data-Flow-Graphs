@@ -10,7 +10,7 @@
  * @param inputConnections is similar the outConnections, showing the inputs
  *
  */
-class Actor(
+data class Actor(
     var inputRate: Int?
     , var outputRate: Int? = null
     , var latency: Int? = null
