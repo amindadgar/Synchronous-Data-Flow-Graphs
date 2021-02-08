@@ -3,8 +3,14 @@ import java.io.File
 class ReadFromFile {
 
 
-    fun initializeActors(): ArrayList<Actor> {
-        val file = File("src/resources/input.txt")
+    fun initializeActors(fileSelection:Int = 1): ArrayList<Actor> {
+        val file = when(fileSelection){
+            1 -> File("src/resources/input.txt")
+            2 -> File("src/resources/input2.txt")
+            3 -> File("src/resources/input3.txt")
+            else -> File("src/resources/input.txt")
+        }
+
         val actors = ArrayList<Actor>()
 
         var actorsRelationShips: Int? = null
@@ -29,7 +35,7 @@ class ReadFromFile {
                 // the output rates would start from actorCount+1
                 in actorCount + 1..actorCount * 2 -> {
 
-                    val actorIndex = index - (actorsRelationShips!! + 1)
+                    val actorIndex = index - (actorCount + 1)
                     val outputRate = removeString(s)
                     actors[actorIndex].outputRate = outputRate
 
@@ -47,11 +53,8 @@ class ReadFromFile {
                     val firstActor: Int = Character.getNumericValue(s[0]) - 1
                     val secondActor: Int = Character.getNumericValue(s[2]) - 1
 
-
-                    actors[firstActor].outConnections.add(secondActor)
-                    actors[firstActor].outputTokens.add(removeString(s))
-                    actors[secondActor].inputConnections.add(firstActor)
-                    actors[secondActor].inputTokens.add(removeString(s))
+                    actors[firstActor].outConnectionsToken.add(Pair(secondActor,removeString(s)))
+                    actors[secondActor].inputConnectionsToken.add(Pair(firstActor,removeString(s)))
 
                 }
             }
