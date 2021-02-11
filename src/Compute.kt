@@ -29,7 +29,8 @@ class Compute {
                         startArray.add(data.first)
 
                     println("${actors[index].outputRate!!} Tokens produces for actor ${data.first}")
-                    fillInputs(actors[data.first], index, actors[index].outputRate!!)
+                    // fill the next actor inputs
+                    fillInputs(actors[data.first], index)
 
                 }
 
@@ -84,7 +85,10 @@ class Compute {
     }
 
     // add the tokens on the vector of graph
-    private fun fillInputs(actor: Actor, index: Int, tokenIncrease: Int): Boolean {
+    // the first input is the next actor
+    // the second input is the index of actor in use
+    // the third element is the output rate of the actor in use
+    private fun fillInputs(actor: Actor, index: Int, tokenIncrease: Int = actor.outputRate!!): Boolean {
         val result = actor.inputConnectionsToken.find { it.first == index }
 
         return if (result != null) {
@@ -93,5 +97,46 @@ class Compute {
             true
         } else
             false
+    }
+
+    // steps is changeable due to user input
+    // in fact steps is a time slice
+    fun computeThroughput(actors: ArrayList<Actor>,steps:Int){
+        var time = 0
+        while (time <= steps) {
+            var biggestTime:Int = 0
+
+            // check all the actors that can be fired and fire them
+            actors.forEachIndexed { index, actor ->
+                // TODO("Every input is firing at the same time, because of the same time checking !")
+                val c = checkInput(actor)
+                if (c){
+                    consumeTokens(actor)
+
+
+                    // fill the inputs of the next actors
+                    for (vectors in actor.outConnectionsToken){
+                        fillInputs(actors[vectors.first], index)
+                    }
+                    println("  Actor $index fired at the time: $time ")
+                    // Get the biggest time of the fired actors
+                    if (biggestTime < actor.latency!!)
+                        biggestTime = actor.latency!!
+
+
+                    // if the last actor was fired print a message
+//                    println("actor $index was fired at the time of $time")
+                    if ( index+1 == actors.size )
+                        println("index : $index   output came at clock ${time + biggestTime}\n")
+                }
+            }
+
+            // if any of actors was fired, our time would be added to the biggest time of the fired actor
+            // else if no actors was fired just increase the time with one
+            if (biggestTime != 0)
+                time += biggestTime
+            else
+                time++
+        }
     }
 }

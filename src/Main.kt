@@ -6,7 +6,7 @@ fun main() {
     val actors: ArrayList<Actor> = initialize.initializeActors(3)
     val compute = Compute()
 
-    compute.computeLatency(actors)
+    compute.computeThroughput(actors,25)
 
 
 
