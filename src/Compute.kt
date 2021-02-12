@@ -1,12 +1,16 @@
+import kotlin.collections.ArrayList
+
 class Compute {
 
+    /** we have implemented two type of functions for calculation
+     *  the first functions, computeLatency and computeThroughput are for calculations with log and time steps
+     *  the seconds, computeLatency2 and computeThroughput2 are using another method to calculate the request
+    */
     fun computeLatency(actors: ArrayList<Actor>) {
         val startArray = arrayListOf<Int>(0)
 
         var index: Int
         var latency = 0
-
-        var throughput: Int? = null
 
         while (startArray.isNotEmpty()) {
 
@@ -34,17 +38,6 @@ class Compute {
 
                 }
 
-                // TODO("Implement throughput in another function")
-//                // If we reach the end actor
-//                if (actors[index].outConnections.isNullOrEmpty()) {
-//                    // throughput is calculated when
-//                    if (throughput == null) {
-//                        throughput = latency
-////                    println("Throughput: $throughput")
-//                    }
-//                }
-
-
             } else {
                 println("Actor number $index be cannot Fired!")
             }
@@ -57,6 +50,61 @@ class Compute {
             println("Note: The first actor MUST be fired at time 0")
         }
     }
+
+    fun computeLatency2(actors: ArrayList<Actor>){
+        var totalLatency:Int = 0
+        actors.forEach { totalLatency += it.latency!! }
+
+        var loop:Boolean = false
+        var totalLoopTokens:Int = 0
+        actors.forEachIndexed{index, actor ->
+            for (conn in actor.outConnectionsToken) {
+                totalLoopTokens += conn.second
+                if (conn.first < index && index == actors.size - 1) {
+                    loop = true
+                    println("Loop from $index, ${conn.first}")
+                }
+            }
+        }
+        if (loop)
+            println("Total latency (Having a loop): ${totalLatency/totalLoopTokens}")
+        else
+            println("Total latency: $totalLatency")
+    }
+
+    fun computeThroughput2(actors: ArrayList<Actor>){
+        val totalLatency = arrayListOf<Int>(0)
+
+        val totalLoopTokens = arrayListOf<Pair<Int,Int>>()
+        // sum every actor's latency before and after token
+        var index = 0
+        actors.forEachIndexed{i, actor ->
+            totalLatency[index] += actor.latency!!
+            var haveToken = false
+            for (conn in actor.outConnectionsToken) {
+                if (conn.second > 0) {
+                    haveToken = true
+                    println("$i token found")
+                }
+            }
+            // if we had token, get the token and save it
+            if (haveToken) {
+                totalLatency.add(++index, 0)
+            }
+        }
+
+        var biggerLatency = 0
+        totalLatency.forEach {
+            println(it)
+            if (biggerLatency < it)
+                biggerLatency = it
+        }
+        println("Throughput: $biggerLatency")
+
+
+    }
+
+
 
     // Check the input tokens
     // Weather the actor can fire or not
@@ -117,7 +165,6 @@ class Compute {
                     ,inC as ArrayList<Pair<Int, Int>>
                 ) }
 
-
             var biggestTime:Int = 0
             // check all the actors that can be fired and fire them
             actorsC2.forEachIndexed { index, actor ->
@@ -134,12 +181,14 @@ class Compute {
                         biggestTime = actor.latency!!
 
 
-//                    println("Actor $index Fired, latency: ${actor.latency!!}")
+//                    println("Actor ${index+1} Fired, at time: ${actor.latency!! + time}")
 
 
                     // if the last actor was fired print a message
-                    if ( index+1 == actors.size )
-                        println("output came at clock ${time + actor.latency!!}")
+                    if ( index+1 == actors.size ) {
+                        println("output came at clock ${actor.latency!! +time}")
+
+                    }
                 }
             }
 
