@@ -100,34 +100,46 @@ class Compute {
     }
 
     // steps is changeable due to user input
-    // in fact steps is a time slice
+    // in fact steps is a time slice (Or clock)
     fun computeThroughput(actors: ArrayList<Actor>,steps:Int){
         var time = 0
-        while (time <= steps) {
-            var biggestTime:Int = 0
+        // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
 
+
+        while (time <= steps) {
+            // deep copy the actors
+            val actorsC2 = actors.map { actor ->
+                val outC = actor.outConnectionsToken.map { it.copy() }
+                val inC = actor.inputConnectionsToken.map { it.copy() }
+                actor.copy(
+                    actor.inputRate,actor.outputRate,actor.latency,
+                    outC as ArrayList<Pair<Int, Int>>
+                    ,inC as ArrayList<Pair<Int, Int>>
+                ) }
+
+
+            var biggestTime:Int = 0
             // check all the actors that can be fired and fire them
-            actors.forEachIndexed { index, actor ->
-                // TODO("Every input is firing at the same time, because of the same time checking !")
+            actorsC2.forEachIndexed { index, actor ->
                 val c = checkInput(actor)
                 if (c){
-                    consumeTokens(actor)
-
+                    consumeTokens(actors[index])
 
                     // fill the inputs of the next actors
                     for (vectors in actor.outConnectionsToken){
                         fillInputs(actors[vectors.first], index)
                     }
-                    println("  Actor $index fired at the time: $time ")
                     // Get the biggest time of the fired actors
                     if (biggestTime < actor.latency!!)
                         biggestTime = actor.latency!!
 
 
+//                    println("Actor $index Fired, latency: ${actor.latency!!}")
+
+
                     // if the last actor was fired print a message
-//                    println("actor $index was fired at the time of $time")
                     if ( index+1 == actors.size )
-                        println("index : $index   output came at clock ${time + biggestTime}\n")
+                        println("output came at clock ${time + actor.latency!!}")
                 }
             }
 
@@ -135,8 +147,6 @@ class Compute {
             // else if no actors was fired just increase the time with one
             if (biggestTime != 0)
                 time += biggestTime
-            else
-                time++
         }
     }
 }
