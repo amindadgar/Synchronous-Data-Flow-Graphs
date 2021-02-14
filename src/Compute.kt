@@ -1,11 +1,17 @@
+import java.io.File
 import kotlin.collections.ArrayList
 
 class Compute {
 
+    init {
+        // free the output File
+        File("output.txt").writeText("")
+    }
+
     /** we have implemented two type of functions for calculation
      *  the first functions, computeLatency and computeThroughput are for calculations with log and time steps
      *  the seconds, computeLatency2 and computeThroughput2 are using another method to calculate the request
-    */
+     */
     fun computeLatency(actors: ArrayList<Actor>) {
         val startArray = arrayListOf<Int>(0)
 
@@ -20,7 +26,7 @@ class Compute {
 
             if (checkInput(actors[index])) {
                 // fire the actor
-                println("Actor number $index is Fired!")
+                writeToFile("Actor number $index is Fired!")
 
                 latency += actors[index].latency!!
 
@@ -32,59 +38,59 @@ class Compute {
                     if (data.first > index)
                         startArray.add(data.first)
 
-                    println("${actors[index].outputRate!!} Tokens produces for actor ${data.first}")
+                    writeToFile("${actors[index].outputRate!!} Tokens produces for actor ${data.first}")
                     // fill the next actor inputs
                     fillInputs(actors[data.first], index)
 
                 }
 
             } else {
-                println("Actor number $index be cannot Fired!")
+                writeToFile("Actor number $index be cannot Fired!")
             }
         }
         if (latency != 0)
-            println("Latency: $latency")
+            writeToFile("Latency: $latency")
         else {
-            println("Latency cannot be calculated!")
-            println("Because this structure does not support this kind of SDF")
-            println("Note: The first actor MUST be fired at time 0")
+            writeToFile("Latency cannot be calculated!")
+            writeToFile("Because this structure does not support this kind of SDF")
+            writeToFile("Note: The first actor MUST be fired at time 0")
         }
     }
 
-    fun computeLatency2(actors: ArrayList<Actor>){
-        var totalLatency:Int = 0
+    fun computeLatency2(actors: ArrayList<Actor>) {
+        var totalLatency: Int = 0
         actors.forEach { totalLatency += it.latency!! }
 
-        var loop:Boolean = false
-        var totalLoopTokens:Int = 0
-        actors.forEachIndexed{index, actor ->
+        var loop: Boolean = false
+        var totalLoopTokens: Int = 0
+        actors.forEachIndexed { index, actor ->
             for (conn in actor.outConnectionsToken) {
                 totalLoopTokens += conn.second
                 if (conn.first < index && index == actors.size - 1) {
                     loop = true
-                    println("Loop from $index, ${conn.first}")
+                    writeToFile("Loop from $index, ${conn.first}")
                 }
             }
         }
         if (loop)
-            println("Total latency (Having a loop): ${totalLatency/totalLoopTokens}")
+            writeToFile("Total latency (Having a loop): ${totalLatency / totalLoopTokens}")
         else
-            println("Total latency: $totalLatency")
+            writeToFile("Total latency: $totalLatency")
     }
 
-    fun computeThroughput2(actors: ArrayList<Actor>){
+    fun computeThroughput2(actors: ArrayList<Actor>) {
         val totalLatency = arrayListOf<Int>(0)
 
-        val totalLoopTokens = arrayListOf<Pair<Int,Int>>()
+        val totalLoopTokens = arrayListOf<Pair<Int, Int>>()
         // sum every actor's latency before and after token
         var index = 0
-        actors.forEachIndexed{i, actor ->
+        actors.forEachIndexed { i, actor ->
             totalLatency[index] += actor.latency!!
             var haveToken = false
             for (conn in actor.outConnectionsToken) {
                 if (conn.second > 0) {
                     haveToken = true
-                    println("$i token found")
+                    writeToFile("$i token found")
                 }
             }
             // if we had token, get the token and save it
@@ -95,15 +101,14 @@ class Compute {
 
         var biggerLatency = 0
         totalLatency.forEach {
-            println(it)
+            writeToFile(it)
             if (biggerLatency < it)
                 biggerLatency = it
         }
-        println("Throughput: $biggerLatency")
+        writeToFile("Throughput: $biggerLatency")
 
 
     }
-
 
 
     // Check the input tokens
@@ -149,7 +154,7 @@ class Compute {
 
     // steps is changeable due to user input
     // in fact steps is a time slice (Or clock)
-    fun computeThroughput(actors: ArrayList<Actor>,steps:Int){
+    fun computeThroughput(actors: ArrayList<Actor>, steps: Int) {
         var time = 0
         // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
 
@@ -160,20 +165,22 @@ class Compute {
                 val outC = actor.outConnectionsToken.map { it.copy() }
                 val inC = actor.inputConnectionsToken.map { it.copy() }
                 actor.copy(
-                    actor.inputRate,actor.outputRate,actor.latency,
+                    actor.inputRate, actor.outputRate, actor.latency,
                     outC as ArrayList<Pair<Int, Int>>
-                    ,inC as ArrayList<Pair<Int, Int>>
-                ) }
+                    , inC as ArrayList<Pair<Int, Int>>
+                )
+            }
 
-            var biggestTime:Int = 0
+            var biggestTime: Int = 0
             // check all the actors that can be fired and fire them
             actorsC2.forEachIndexed { index, actor ->
                 val c = checkInput(actor)
-                if (c){
+                if (c) {
                     consumeTokens(actors[index])
+                    writeToFile("Actor ${index + 1} is fired!")
 
                     // fill the inputs of the next actors
-                    for (vectors in actor.outConnectionsToken){
+                    for (vectors in actor.outConnectionsToken) {
                         fillInputs(actors[vectors.first], index)
                     }
                     // Get the biggest time of the fired actors
@@ -181,14 +188,16 @@ class Compute {
                         biggestTime = actor.latency!!
 
 
-//                    println("Actor ${index+1} Fired, at time: ${actor.latency!! + time}")
+                    writeToFile("Actor ${index + 1} Fired, at time: ${actor.latency!! + time}")
 
 
                     // if the last actor was fired print a message
-                    if ( index+1 == actors.size ) {
-                        println("output came at clock ${actor.latency!! +time}")
+                    if (index + 1 == actors.size) {
+                        writeToFile("output came at clock ${actor.latency!! + time}")
 
                     }
+                } else {
+                    writeToFile("Actor ${index + 1} cannot be fired!")
                 }
             }
 
@@ -197,5 +206,13 @@ class Compute {
             if (biggestTime != 0)
                 time += biggestTime
         }
+    }
+
+    private fun writeToFile(text: Any) {
+        val output = File("output.txt")
+        println(text.toString())
+        output.appendText(text.toString() + "\n")
+
+
     }
 }
