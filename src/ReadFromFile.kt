@@ -10,7 +10,6 @@ class ReadFromFile {
             2 -> File("src/resources/input2.txt")
             3 -> File("src/resources/input3.txt")
             4 -> File("src/resources/input4.txt")
-            5 -> File("src/resources/input5.txt")
             else -> File("src/resources/input.txt")
         }
 
