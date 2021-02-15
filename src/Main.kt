@@ -3,10 +3,10 @@ fun main() {
     val initialize = ReadFromFile()
     // get the actors
     // 3 means input3.txt file
-    val actors: ArrayList<Actor> = initialize.initializeActors(1)
+    val actors: ArrayList<Actor> = initialize.initializeActors(2)
     val compute = Compute()
 
-    compute.computeLatency(actors)
+    compute.computeAll(actors,50)
 
 
 

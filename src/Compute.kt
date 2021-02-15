@@ -9,55 +9,10 @@ class Compute {
     }
 
     /** we have implemented two type of functions for calculation
-     *  the first functions, computeLatency and computeThroughput are for calculations with log and time steps
-     *  the seconds, computeLatency2 and computeThroughput2 are using another method to calculate the request
+     *  function computeExactLatency and computeExactThroughput is just showing the throughput and latency value
+     *  function computeAll is for showing the results in interval
      */
-    fun computeLatency(actors: ArrayList<Actor>) {
-        val startArray = arrayListOf<Int>(0)
-
-        var index: Int
-        var latency = 0
-
-        while (startArray.isNotEmpty()) {
-
-            // get the last actor from the list and calculate the line
-            index = startArray.last()
-            startArray.removeAt(startArray.size - 1)
-
-            if (checkInput(actors[index])) {
-                // fire the actor
-                writeToFile("Actor number $index is Fired!")
-
-                latency += actors[index].latency!!
-
-                consumeTokens(actors[index])
-
-                actors[index].outConnectionsToken.forEach { data ->
-                    // this condition is because of loops
-                    // if the index was bigger than the actor (data.first), it's a loop (SO don't add it)
-                    if (data.first > index)
-                        startArray.add(data.first)
-
-                    writeToFile("${actors[index].outputRate!!} Tokens produces for actor ${data.first}")
-                    // fill the next actor inputs
-                    fillInputs(actors[data.first], index)
-
-                }
-
-            } else {
-                writeToFile("Actor number $index be cannot Fired!")
-            }
-        }
-        if (latency != 0)
-            writeToFile("Latency: $latency")
-        else {
-            writeToFile("Latency cannot be calculated!")
-            writeToFile("Because this structure does not support this kind of SDF")
-            writeToFile("Note: The first actor MUST be fired at time 0")
-        }
-    }
-
-    fun computeLatency2(actors: ArrayList<Actor>) {
+    fun computeExactLatency(actors: ArrayList<Actor>) {
         var totalLatency: Int = 0
         actors.forEach { totalLatency += it.latency!! }
 
@@ -78,10 +33,9 @@ class Compute {
             writeToFile("Total latency: $totalLatency")
     }
 
-    fun computeThroughput2(actors: ArrayList<Actor>) {
+    fun computeExactThroughput(actors: ArrayList<Actor>) {
         val totalLatency = arrayListOf<Int>(0)
 
-        val totalLoopTokens = arrayListOf<Pair<Int, Int>>()
         // sum every actor's latency before and after token
         var index = 0
         actors.forEachIndexed { i, actor ->
@@ -101,11 +55,11 @@ class Compute {
 
         var biggerLatency = 0
         totalLatency.forEach {
-            writeToFile(it)
+            writeToFile("Part Graph Throughput $it")
             if (biggerLatency < it)
                 biggerLatency = it
         }
-        writeToFile("Throughput: $biggerLatency")
+        writeToFile("Whole Graph Throughput: $biggerLatency")
 
 
     }
@@ -115,9 +69,18 @@ class Compute {
     // Weather the actor can fire or not
     private fun checkInput(actor: Actor): Boolean {
         var boolean: Boolean = true
-        for (tokens in actor.inputConnectionsToken) {
-            if (tokens.second < actor.inputRate!!)
-                boolean = false
+        // first check the actor if it is in processing state or not
+        if (actor.processFinishTime > 0)
+            actor.processFinishTime --
+
+        if (actor.processFinishTime < 1) {
+            // then the actor is not processing, check if it is having tokens to fire or not
+            for (tokens in actor.inputConnectionsToken) {
+                if (tokens.second < actor.inputRate!!)
+                    boolean = false
+            }
+        }else {
+            boolean = false
         }
         return boolean
     }
@@ -154,11 +117,12 @@ class Compute {
 
     // steps is changeable due to user input
     // in fact steps is a time slice (Or clock)
-    fun computeThroughput(actors: ArrayList<Actor>, steps: Int) {
+    fun computeAll(actors: ArrayList<Actor>, steps: Int) {
         var time = 0
         // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
 
-
+        var firstTimeOutput:Int? = null
+        var throughput :Int = 0
         while (time <= steps) {
             // deep copy the actors
             val actorsC2 = actors.map { actor ->
@@ -171,41 +135,41 @@ class Compute {
                 )
             }
 
-            var biggestTime: Int = 0
             // check all the actors that can be fired and fire them
             actorsC2.forEachIndexed { index, actor ->
                 val c = checkInput(actor)
-                if (c) {
-                    consumeTokens(actors[index])
-                    writeToFile("Actor ${index + 1} is fired!")
+                // we will call checkInput function on actors array too
+                // because we want changes of processFinishTime
+                checkInput(actors[index])
 
+                if (!c && actors[index].processFinishTime == 0) {
                     // fill the inputs of the next actors
                     for (vectors in actor.outConnectionsToken) {
                         fillInputs(actors[vectors.first], index)
                     }
-                    // Get the biggest time of the fired actors
-                    if (biggestTime < actor.latency!!)
-                        biggestTime = actor.latency!!
+                }
 
-
-                    writeToFile("Actor ${index + 1} Fired, at time: ${actor.latency!! + time}")
+                if (c) {
+                    // the actor is fired
+                    // so add the processFinishTime to it
+                    actors[index].processFinishTime = actors[index].latency!!
+                    consumeTokens(actors[index])
+                    writeToFile("$time :Actor ${index + 1} is fired!")
 
 
                     // if the last actor was fired print a message
                     if (index + 1 == actors.size) {
-                        writeToFile("output came at clock ${actor.latency!! + time}")
-
+                        if (firstTimeOutput == null)
+                            firstTimeOutput = time
+                        throughput = time - throughput
+                        writeToFile("$time :output came")
                     }
-                } else {
-                    writeToFile("Actor ${index + 1} cannot be fired!")
                 }
             }
-
-            // if any of actors was fired, our time would be added to the biggest time of the fired actor
-            // else if no actors was fired just increase the time with one
-            if (biggestTime != 0)
-                time += biggestTime
+            time++
         }
+        writeToFile("Latency: $firstTimeOutput")
+        writeToFile("Throughput: $throughput")
     }
 
     private fun writeToFile(text: Any) {
