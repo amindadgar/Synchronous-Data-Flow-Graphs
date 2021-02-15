@@ -12,7 +12,7 @@ class Compute {
      *  function computeExactLatency and computeExactThroughput is just showing the throughput and latency value
      *  function computeAll is for showing the results in interval
      */
-    fun computeExactLatency(actors: ArrayList<Actor>) {
+    private fun computeExactLatency(actors: ArrayList<Actor>):Int {
         var totalLatency: Int = 0
         actors.forEach { totalLatency += it.latency!! }
 
@@ -27,13 +27,19 @@ class Compute {
                 }
             }
         }
-        if (loop)
+
+        val returnLatency:Int
+        returnLatency = if (loop) {
             writeToFile("Total latency (Having a loop): ${totalLatency / totalLoopTokens}")
-        else
+            totalLatency / totalLoopTokens
+        } else {
             writeToFile("Total latency: $totalLatency")
+            totalLatency
+        }
+        return returnLatency
     }
 
-    fun computeExactThroughput(actors: ArrayList<Actor>) {
+    private fun computeExactThroughput(actors: ArrayList<Actor>):Int {
         val totalLatency = arrayListOf<Int>(0)
 
         // sum every actor's latency before and after token
@@ -60,7 +66,7 @@ class Compute {
                 biggerLatency = it
         }
         writeToFile("Whole Graph Throughput: $biggerLatency")
-
+        return biggerLatency
 
     }
 
@@ -119,12 +125,10 @@ class Compute {
     // in fact steps is a time slice (Or clock)
     fun computeAll(actors: ArrayList<Actor>, steps: Int) {
         var time = 0
-        // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
 
-        var firstTimeOutput:Int? = null
-        var throughput :Int = 0
         while (time <= steps) {
             // deep copy the actors
+            // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
             val actorsC2 = actors.map { actor ->
                 val outC = actor.outConnectionsToken.map { it.copy() }
                 val inC = actor.inputConnectionsToken.map { it.copy() }
@@ -159,16 +163,17 @@ class Compute {
 
                     // if the last actor was fired print a message
                     if (index + 1 == actors.size) {
-                        if (firstTimeOutput == null)
-                            firstTimeOutput = time
-                        throughput = time - throughput
                         writeToFile("$time :output came")
                     }
                 }
             }
             time++
         }
-        writeToFile("Latency: $firstTimeOutput")
+        writeToFile("-------------------------------------")
+        val throughput = computeExactThroughput(actors)
+        val latency = computeExactLatency(actors)
+        writeToFile("-------------------------------------")
+        writeToFile("Latency: $latency")
         writeToFile("Throughput: $throughput")
     }
 
