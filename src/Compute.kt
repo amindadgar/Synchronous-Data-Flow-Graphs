@@ -141,30 +141,57 @@ class Compute {
 
             // check all the actors that can be fired and fire them
             actorsC2.forEachIndexed { index, actor ->
-                val c = checkInput(actor)
+                // check if we can fire an actor
+                // Note: if the actor processFinishTime is more than zero this will output false
+                var c = checkInput(actor)
+
                 // we will call checkInput function on actors array too
                 // because we want changes of processFinishTime
-                checkInput(actors[index])
+                c = checkInput(actors[index])
 
-                if (!c && actors[index].processFinishTime == 0) {
+                // if we can fire the actor ( c == true )
+                // and if our actor process was finished!
+                // Note: processFinishTime is -1 when we start the flow
+                // the zero equal condition is for checking weather the actor was fired or not!
+                if (c && actor.processFinishTime == 0) {
+                    writeToFile("$time ns: Actor ${index + 1} Fired token! And it is going to processing state")
+
                     // fill the inputs of the next actors
                     for (vectors in actor.outConnectionsToken) {
                         fillInputs(actors[vectors.first], index)
                     }
-                }
 
-                if (c) {
+                    // if the last actor was fired print a message
+                    if (index + 1 == actors.size) {
+                        writeToFile("$time ns: output came")
+                    }
+                    actors[index].processFinishTime = actors[index].latency!!
+                    consumeTokens(actors[index])
+
+                }else if (c){
+                    // here the processFinishTime was -1
+                    // means processing state is starting ( The actor is busy and processing tokens )
+                    // after we process tokens our processFinishTime would be zero
+                    writeToFile("$time ns: Actor ${index + 1} is processing!")
+
                     // the actor is fired
                     // so add the processFinishTime to it
                     actors[index].processFinishTime = actors[index].latency!!
                     consumeTokens(actors[index])
-                    writeToFile("$time :Actor ${index + 1} is fired!")
+                } else if (actors[index].processFinishTime == 0 ){
+                    // here our processing state is finish and we would create output tokens
+                    // The difference from above conditions is we don't have enough input to fire again
+                    // so we would make processFinishTime -1 to wait if again token come
 
+                    for (vectors in actor.outConnectionsToken) {
+                        fillInputs(actors[vectors.first], index)
+                    }
 
                     // if the last actor was fired print a message
                     if (index + 1 == actors.size) {
-                        writeToFile("$time :output came")
+                        writeToFile("$time ns: output came")
                     }
+                    actors[index].processFinishTime = -1
                 }
             }
             time++

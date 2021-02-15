@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.system.exitProcess
 
 class ReadFromFile {
 
@@ -9,6 +10,7 @@ class ReadFromFile {
             2 -> File("src/resources/input2.txt")
             3 -> File("src/resources/input3.txt")
             4 -> File("src/resources/input4.txt")
+            5 -> File("src/resources/input5.txt")
             else -> File("src/resources/input.txt")
         }
 
@@ -51,12 +53,14 @@ class ReadFromFile {
                 else -> {
                     // we would read the actors minus one
                     // because the first actor number is zero !
-                    val firstActor: Int = Character.getNumericValue(s[0]) - 1
-                    val secondActor: Int = Character.getNumericValue(s[2]) - 1
+                    val string:String = s.subSequence(0,5).toString()
+                    val numbers = string.replace(" ","").split(",")
+
+                    val firstActor: Int = numbers[0].toInt() - 1
+                    val secondActor: Int = numbers[1].toInt() - 1
 
                     actors[firstActor].outConnectionsToken.add(Pair(secondActor,removeString(s)))
                     actors[secondActor].inputConnectionsToken.add(Pair(firstActor,removeString(s)))
-
                 }
             }
         }
