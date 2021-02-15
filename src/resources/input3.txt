@@ -6,4 +6,4 @@ Actor2_OutputRate: 1
 Actor1_latency: 5
 Actor2_latency: 3
 1,2  token_count:1
-2,1  token_count:1
+2,1  token_count:0

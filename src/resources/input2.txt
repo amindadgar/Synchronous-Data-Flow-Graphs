@@ -12,5 +12,5 @@ Actor2_latency: 4
 Actor3_latency: 2
 Actor4_latency: 3
 1,2  token_count:0
-2,3  token_count:1
+2,3  token_count:0
 3,4  token_count:0

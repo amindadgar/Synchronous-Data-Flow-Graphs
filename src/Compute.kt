@@ -12,7 +12,7 @@ class Compute {
      *  function computeExactLatency and computeExactThroughput is just showing the throughput and latency value
      *  function computeAll is for showing the results in interval
      */
-    private fun computeExactLatency(actors: ArrayList<Actor>):Int {
+    private fun computeExactLatency(actors: ArrayList<Actor>): Int {
         var totalLatency: Int = 0
         actors.forEach { totalLatency += it.latency!! }
 
@@ -28,8 +28,8 @@ class Compute {
             }
         }
 
-        val returnLatency:Int
-        returnLatency = if (loop) {
+        val returnLatency: Int
+        returnLatency = if (totalLoopTokens > 0) {
             writeToFile("Total latency (Having a loop): ${totalLatency / totalLoopTokens}")
             totalLatency / totalLoopTokens
         } else {
@@ -39,7 +39,7 @@ class Compute {
         return returnLatency
     }
 
-    private fun computeExactThroughput(actors: ArrayList<Actor>):Int {
+    private fun computeExactThroughput(actors: ArrayList<Actor>): Int {
         val totalLatency = arrayListOf<Int>(0)
 
         // sum every actor's latency before and after token
@@ -50,7 +50,7 @@ class Compute {
             for (conn in actor.outConnectionsToken) {
                 if (conn.second > 0) {
                     haveToken = true
-                    writeToFile("$i token found")
+                    writeToFile("${conn.second} tokens in for ${i + 1} found")
                 }
             }
             // if we had token, get the token and save it
@@ -77,7 +77,7 @@ class Compute {
         var boolean: Boolean = true
         // first check the actor if it is in processing state or not
         if (actor.processFinishTime > 0)
-            actor.processFinishTime --
+            actor.processFinishTime--
 
         if (actor.processFinishTime < 1) {
             // then the actor is not processing, check if it is having tokens to fire or not
@@ -85,7 +85,7 @@ class Compute {
                 if (tokens.second < actor.inputRate!!)
                     boolean = false
             }
-        }else {
+        } else {
             boolean = false
         }
         return boolean
@@ -126,6 +126,8 @@ class Compute {
     fun computeAll(actors: ArrayList<Actor>, steps: Int) {
         var time = 0
 
+        val outputTimes = arrayListOf<Int>()
+        var firstTimeToken: Int? = null
         while (time <= steps) {
             // deep copy the actors
             // the second copy is for changing the actors list states (tokens) after a clock (Or a time step)
@@ -163,12 +165,17 @@ class Compute {
 
                     // if the last actor was fired print a message
                     if (index + 1 == actors.size) {
+                        // when first time a token is out then it is our Latency
+                        if (firstTimeToken == null)
+                            firstTimeToken = time
+
                         writeToFile("$time ns: output came")
+                        outputTimes.add(time)
                     }
                     actors[index].processFinishTime = actors[index].latency!!
                     consumeTokens(actors[index])
 
-                }else if (c){
+                } else if (c) {
                     // here the processFinishTime was -1
                     // means processing state is starting ( The actor is busy and processing tokens )
                     // after we process tokens our processFinishTime would be zero
@@ -178,7 +185,7 @@ class Compute {
                     // so add the processFinishTime to it
                     actors[index].processFinishTime = actors[index].latency!!
                     consumeTokens(actors[index])
-                } else if (actors[index].processFinishTime == 0 ){
+                } else if (actors[index].processFinishTime == 0) {
                     // here our processing state is finish and we would create output tokens
                     // The difference from above conditions is we don't have enough input to fire again
                     // so we would make processFinishTime -1 to wait if again token come
@@ -189,7 +196,11 @@ class Compute {
 
                     // if the last actor was fired print a message
                     if (index + 1 == actors.size) {
+                        // when first time a token is out then it is our Latency
+                        if (firstTimeToken == null)
+                            firstTimeToken = time
                         writeToFile("$time ns: output came")
+                        outputTimes.add(time)
                     }
                     actors[index].processFinishTime = -1
                 }
@@ -197,18 +208,41 @@ class Compute {
             time++
         }
         writeToFile("-------------------------------------")
-        val throughput = computeExactThroughput(actors)
+        writeToFile("Compute With method One:\n")
+        var throughput = computeExactThroughput(actors)
         val latency = computeExactLatency(actors)
         writeToFile("-------------------------------------")
-        writeToFile("Latency: $latency")
+        writeToFile("Compute with method two (using time steps shown at the top)\n")
+
+        // if any tokens was in graph the variable firsTimeToken ( Latency variable ) is obsolete
+        // because the the first time a token out is seen is not our input token
+        // else if there was no token in the graph
+        // so the first token out is our latency ( out token is our input token )
+        val graphTokens = checkVectorTokens(actors)
+        if (graphTokens != 0)
+            writeToFile("Latency: $latency")
+        else
+            writeToFile("Latency: $firstTimeToken")
+
+        if (outputTimes.size > 1)
+            throughput = outputTimes[outputTimes.size - 1] - outputTimes[outputTimes.size - 2]
         writeToFile("Throughput: $throughput")
+    }
+
+    // check the token count that is in graph
+    private fun checkVectorTokens(actors: ArrayList<Actor>): Int {
+        var totalTokensInGraph: Int = 0
+        actors.forEach { actor ->
+            actor.outConnectionsToken.forEach { actorOutConnection ->
+                totalTokensInGraph += actorOutConnection.second
+            }
+        }
+        return totalTokensInGraph
     }
 
     private fun writeToFile(text: Any) {
         val output = File("output.txt")
         println(text.toString())
         output.appendText(text.toString() + "\n")
-
-
     }
 }
