@@ -146,7 +146,12 @@ class Compute {
                 // because we want changes of processFinishTime
                 checkInput(actors[index])
 
-                if (!c && actors[index].processFinishTime == 0) {
+                // if we can fire the actor ( c == true )
+                // and if our actor process was finished!
+                // Note: processFinishTime is -1 when we start the flow
+                if (c && actors[index].processFinishTime == 0) {
+                    writeToFile("$time :Actor ${index + 1} Fired token!")
+
                     // fill the inputs of the next actors
                     for (vectors in actor.outConnectionsToken) {
                         fillInputs(actors[vectors.first], index)
@@ -158,7 +163,7 @@ class Compute {
                     // so add the processFinishTime to it
                     actors[index].processFinishTime = actors[index].latency!!
                     consumeTokens(actors[index])
-                    writeToFile("$time :Actor ${index + 1} is fired!")
+                    writeToFile("$time :Actor ${index + 1} is processing!")
 
 
                     // if the last actor was fired print a message
