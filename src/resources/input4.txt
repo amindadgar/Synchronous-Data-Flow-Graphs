@@ -10,7 +10,7 @@ Actor8_InputRate: 8
 Actor9_InputRate: 8
 Actor10_InputRate: 8
 Actor11_InputRate: 8
-Actor12_InputRate: 8
+Actor12_InputRate: 1024
 Actor1_OutputRate: 1024
 Actor2_OutputRate: 1024
 Actor3_OutputRate: 1024
