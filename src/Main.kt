@@ -5,8 +5,9 @@ fun main() {
     // 3 means input3.txt file
     val actors: ArrayList<Actor> = initialize.initializeActors(4)
     val compute = Compute()
-
-    compute.computeAll(actors,500000)
+    print("Enter number of time steps (clock)")
+    val steps = readLine()
+    compute.computeAll(actors,steps!!.toInt())
 
 
 
