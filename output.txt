@@ -1,0 +1,46 @@
+0 ns: Actor 1 is processing!
+3 ns: Actor 1 Fired token! And it is going to processing state
+3 ns: Actor 2 is processing!
+6 ns: Actor 1 Fired token! And it is going to processing state
+7 ns: Actor 2 Fired token! And it is going to processing state
+7 ns: Actor 3 is processing!
+9 ns: Actor 1 Fired token! And it is going to processing state
+9 ns: Actor 4 is processing!
+11 ns: Actor 2 Fired token! And it is going to processing state
+11 ns: Actor 3 is processing!
+12 ns: Actor 1 Fired token! And it is going to processing state
+12 ns: output came
+13 ns: Actor 4 is processing!
+15 ns: Actor 1 Fired token! And it is going to processing state
+15 ns: Actor 2 Fired token! And it is going to processing state
+15 ns: Actor 3 is processing!
+16 ns: output came
+17 ns: Actor 4 is processing!
+18 ns: Actor 1 Fired token! And it is going to processing state
+19 ns: Actor 2 Fired token! And it is going to processing state
+19 ns: Actor 3 is processing!
+20 ns: output came
+21 ns: Actor 1 Fired token! And it is going to processing state
+21 ns: Actor 4 is processing!
+23 ns: Actor 2 Fired token! And it is going to processing state
+23 ns: Actor 3 is processing!
+24 ns: Actor 1 Fired token! And it is going to processing state
+24 ns: output came
+25 ns: Actor 4 is processing!
+27 ns: Actor 1 Fired token! And it is going to processing state
+27 ns: Actor 2 Fired token! And it is going to processing state
+27 ns: Actor 3 is processing!
+28 ns: output came
+29 ns: Actor 4 is processing!
+30 ns: Actor 1 Fired token! And it is going to processing state
+-------------------------------------
+Compute With method One:
+
+Part Graph Throughput 12
+Whole Graph Throughput: 12
+Total latency: 12
+-------------------------------------
+Compute with method two (using time steps shown at the top)
+
+Latency: 12
+Throughput: 4

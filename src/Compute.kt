@@ -30,7 +30,7 @@ class Compute {
 
         val returnLatency: Int
         returnLatency = if (totalLoopTokens > 0) {
-            writeToFile("Total latency (Having a loop): ${totalLatency / totalLoopTokens}")
+            writeToFile("Total latency (Having a loop): $totalLatency")
             totalLatency / totalLoopTokens
         } else {
             writeToFile("Total latency: $totalLatency")
@@ -55,6 +55,7 @@ class Compute {
             }
             // if we had token, get the token and save it
             if (haveToken) {
+                // the goal of the line below is to make a space in array for new value
                 totalLatency.add(++index, 0)
             }
         }
@@ -203,6 +204,8 @@ class Compute {
                         outputTimes.add(time)
                     }
                     actors[index].processFinishTime = -1
+                } else if (!c){
+//                    writeToFile("$time ns: Actor ${index + 1} cannot be fired!")
                 }
             }
             time++
